@@ -1,2 +1,1 @@
-import {NextResponse} from 'next/server';import {cookies} from 'next/headers';import {supabase} from '@/lib/supabase';import {SESSION_COOKIE} from '@/lib/admin'
-export async function POST(){const c=await cookies();const t=c.get(SESSION_COOKIE)?.value;if(t)await supabase.rpc('admin_revoke_session',{p_token:t});c.set(SESSION_COOKIE,'',{httpOnly:true,secure:true,sameSite:'lax',path:'/',maxAge:0});return NextResponse.json({ok:true})}
+import {NextResponse} from "next/server";import {cookies} from "next/headers";import {SESSION_COOKIE} from "@/lib/admin";export async function POST(){const c=await cookies();c.set(SESSION_COOKIE,"",{httpOnly:true,secure:true,sameSite:"lax",path:"/",maxAge:0});return NextResponse.json({ok:true})}
