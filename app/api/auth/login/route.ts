@@ -1,9 +1,2 @@
-import {NextResponse} from 'next/server';import {cookies} from 'next/headers';import {supabase} from '@/lib/supabase';import {SESSION_COOKIE} from '@/lib/admin'
-export async function POST(req:Request){
- const b=await req.json().catch(()=>({}));
- const username=String(b.username||''); const password=String(b.password||'');
- const {data,error}=await supabase.rpc('admin_issue_session',{p_username:username,p_password:password});
- if(error){console.error('LOGIN_RPC_ERROR',JSON.stringify({message:error.message,code:error.code,hint:error.hint}));return NextResponse.json({error:'Login service error.'},{status:500})}
- if(!data){console.error('LOGIN_REJECTED',JSON.stringify({username,hasPassword:!!password}));return NextResponse.json({error:'Invalid login.'},{status:401})}
- const c=await cookies();c.set(SESSION_COOKIE,String(data),{httpOnly:true,secure:true,sameSite:'lax',path:'/',maxAge:43200});return NextResponse.json({ok:true})
-}
+import {NextResponse} from "next/server";import {cookies} from "next/headers";import {SignJWT} from "jose";import {SESSION_COOKIE} from "@/lib/admin";
+export async function POST(req:Request){try{const b=await req.json().catch(()=>({}));const u=String(b.username||"").trim(),p=String(b.password||"");if(!process.env.ADMIN_USERNAME||!process.env.ADMIN_PASSWORD||!process.env.SESSION_SECRET||process.env.SESSION_SECRET.length<32)return NextResponse.json({error:"Admin service is not configured."},{status:500});if(u!==process.env.ADMIN_USERNAME.trim()||p!==process.env.ADMIN_PASSWORD)return NextResponse.json({error:"Invalid login ID or password."},{status:401});const token=await new SignJWT({admin:true}).setProtectedHeader({alg:"HS256"}).setIssuedAt().setExpirationTime("8h").sign(new TextEncoder().encode(process.env.SESSION_SECRET));const c=await cookies();c.set(SESSION_COOKIE,token,{httpOnly:true,secure:true,sameSite:"lax",path:"/",maxAge:28800});return NextResponse.json({ok:true})}catch(e){console.error("Admin login error",e);return NextResponse.json({error:"Admin login failed."},{status:500})}}
