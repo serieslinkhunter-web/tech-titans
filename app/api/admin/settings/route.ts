@@ -1,0 +1,3 @@
+import {NextResponse} from 'next/server';import {supabase} from '@/lib/supabase';import {requireAdmin} from '@/lib/admin'
+const s=(v:any)=>String(v??'').trim()
+export async function POST(req:Request){const t=await requireAdmin();if(!t)return NextResponse.json({error:'Unauthorized'},{status:401});const b=await req.json();const {data,error}=await supabase.rpc('admin_save_settings_session',{p_session:t,p_club_email:s(b.club_email),p_phone:s(b.phone),p_instagram_url:s(b.instagram_url),p_linkedin_url:s(b.linkedin_url),p_website_url:s(b.website_url),p_address:s(b.address)});if(error)return NextResponse.json({error:error.message},{status:400});return NextResponse.json(data)}
